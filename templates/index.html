@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Notes Explorer</title>
+    <meta name="description" content="Browse, search, and tweet Google Cloud BigQuery release notes with a premium glassmorphic interface.">
+    <!-- Google Fonts: Outfit & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main Stylesheet -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2005/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="url(#grad-blue)" />
+                        <path d="M2 17L12 22L22 17M2 12L12 17L22 12" stroke="url(#grad-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <defs>
+                            <linearGradient id="grad-blue" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#4285F4" />
+                                <stop offset="1" stop-color="#34A853" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>BigQuery</h1>
+                    <span class="sub-brand">Release Notes Tracker</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="feed-status" id="feed-status">
+                    <span class="status-dot"></span>
+                    <span class="status-text" id="status-text">Loading feed...</span>
+                </div>
+                <button class="btn-refresh" id="btn-refresh" aria-label="Refresh release notes">
+                    <svg class="icon-refresh" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                    </svg>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="app-main">
+            <!-- Sidebar: Filters, Stats & Info -->
+            <aside class="app-sidebar">
+                <section class="sidebar-section search-section">
+                    <h2>Search & Filter</h2>
+                    <div class="search-box">
+                        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Search updates..." autocomplete="off">
+                        <button id="search-clear" class="btn-clear" style="display: none;">&times;</button>
+                    </div>
+                </section>
+
+                <section class="sidebar-section filter-section">
+                    <h3>Categories</h3>
+                    <div class="filter-pills" id="filter-pills">
+                        <button class="pill active" data-filter="all">All Updates</button>
+                        <button class="pill" data-filter="Feature">Features</button>
+                        <button class="pill" data-filter="Announcement">Announcements</button>
+                        <button class="pill" data-filter="Fix">Fixes</button>
+                        <button class="pill" data-filter="Deprecation">Deprecations</button>
+                        <button class="pill" data-filter="Update">Others</button>
+                    </div>
+                </section>
+
+                <section class="sidebar-section composer-section">
+                    <div class="composer-header">
+                        <h3>Tweet Draft</h3>
+                        <span id="char-counter" class="char-counter">0 / 280</span>
+                    </div>
+                    <div class="tweet-composer-box" id="tweet-composer-box">
+                        <div class="composer-empty-state" id="composer-empty-state">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
+                            </svg>
+                            <p>Select a release note to draft and compose a tweet about it.</p>
+                        </div>
+                        <div class="composer-active-state" id="composer-active-state" style="display: none;">
+                            <div class="composer-context">
+                                <span class="badge" id="composer-note-type">Feature</span>
+                                <span class="date" id="composer-note-date">June 17, 2026</span>
+                            </div>
+                            <textarea id="tweet-textarea" rows="6" placeholder="What's happening?"></textarea>
+                            <div class="composer-footer">
+                                <button class="btn-secondary" id="btn-reset-tweet" title="Reset to original template">
+                                    Reset
+                                </button>
+                                <a href="#" target="_blank" class="btn-tweet" id="btn-tweet-submit">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                                    </svg>
+                                    <span>Tweet</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- Release Notes List Section -->
+            <section class="app-content">
+                <div class="content-header">
+                    <h2 id="results-count">All Release Notes</h2>
+                    <div class="view-toggles">
+                        <!-- We can show some statistics or filter summaries here -->
+                        <span id="notes-total-label" class="notes-count-badge">0 updates</span>
+                    </div>
+                </div>
+
+                <!-- Error Container -->
+                <div class="error-container" id="error-container" style="display: none;">
+                    <div class="error-card">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <h3>Failed to Load Release Notes</h3>
+                        <p id="error-message">Unknown error occurred</p>
+                        <button class="btn-retry" id="btn-error-retry">Retry Fetching</button>
+                    </div>
+                </div>
+
+                <!-- Feed Loader Skeleton -->
+                <div class="skeleton-container" id="skeleton-container">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+
+                <!-- Feed List -->
+                <div class="notes-list" id="notes-list" style="display: none;">
+                    <!-- Items injected here by Javascript -->
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-results" id="empty-results" style="display: none;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <h3>No Matching Updates Found</h3>
+                    <p>Try modifying your search keywords or switching categories.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-content">
+            <span class="toast-icon">✓</span>
+            <span class="toast-message" id="toast-message">Copied to clipboard!</span>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
